@@ -14,7 +14,7 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  if (ems_setup(argv[1], argv[2], argv[3])) {
+  if (ems_setup(argv[1], argv[2], argv[3]) != 0) {
     fprintf(stderr, "Failed to set up EMS\n");
     return 1;
   }
@@ -55,7 +55,7 @@ int main(int argc, char* argv[]) {
           continue;
         }
 
-        if (ems_create(event_id, num_rows, num_columns)) fprintf(stderr, "Failed to create event\n");
+        if (ems_create(event_id, num_rows, num_columns) != 0) fprintf(stderr, "Failed to create event\n");
         break;
 
       case CMD_RESERVE:
@@ -66,7 +66,7 @@ int main(int argc, char* argv[]) {
           continue;
         }
 
-        if (ems_reserve(event_id, num_coords, xs, ys)) fprintf(stderr, "Failed to reserve seats\n");
+        if (ems_reserve(event_id, num_coords, xs, ys) != 0) fprintf(stderr, "Failed to reserve seats\n");
         break;
 
       case CMD_SHOW:
@@ -75,22 +75,22 @@ int main(int argc, char* argv[]) {
           continue;
         }
 
-        if (ems_show(out_fd, event_id)) fprintf(stderr, "Failed to show event\n");
+        if (ems_show(out_fd, event_id) != 0) fprintf(stderr, "Failed to show event\n");
         break;
 
       case CMD_LIST_EVENTS:
-        if (ems_list_events(out_fd)) fprintf(stderr, "Failed to list events\n");
+        if (ems_list_events(out_fd) != 0) fprintf(stderr, "Failed to list events\n");
         break;
 
       case CMD_WAIT:
         if (parse_wait(in_fd, &delay, NULL) == -1) {
-            fprintf(stderr, "Invalid command. See HELP for usage\n");
-            continue;
+          fprintf(stderr, "Invalid command. See HELP for usage\n");
+          continue;
         }
 
         if (delay > 0) {
-            printf("Waiting...\n");
-            sleep(delay);
+          printf("Waiting...\n");
+          sleep(delay);
         }
         break;
 

@@ -77,3 +77,122 @@ int print_str(int fd, const char *str) {
 
   return 0;
 }
+
+int write_str(int fd, char *str, size_t len) {
+  size_t done = 0;
+
+  while (done < len) {
+    ssize_t ret = write(fd, str + done, len - done);
+    if (ret == -1) {
+      return 1;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int write_int(int fd, int *i) {
+  size_t done = 0;
+
+  while(done < sizeof(int)) {
+    ssize_t ret = write(fd, i + done, sizeof(int) - done);
+    if(ret == -1) {
+      return 1;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int write_uint(int fd, unsigned int *i) {
+  size_t done = 0;
+
+  while(done < sizeof(unsigned int)) {
+    ssize_t ret = write(fd, i + done, sizeof(unsigned int) - done);
+    if(ret == -1) {
+      return 1;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int write_sizet(int fd, size_t *i) {
+  size_t done = 0;
+
+  while(done < sizeof(size_t)) {
+    ssize_t ret = write(fd, i + done, sizeof(size_t) - done);
+    if(ret == -1) {
+      return 1;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int read_str(int fd, char *str, size_t len) {
+  size_t done = 0;
+  while(done < len) {
+    ssize_t ret = read(fd, str + done, len - done);
+    if(ret == -1) {
+      return 1;
+    }
+    if(ret == 0) {
+      break;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int read_int(int fd, int *i) {
+  size_t done = 0;
+  while(done < sizeof(int)) {
+    ssize_t ret = read(fd, i + done, sizeof(int) - done);
+    if(ret == -1) {
+      return 1;
+    }
+    if(ret == 0) {
+      break;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int read_uint(int fd, unsigned int *i) {
+  size_t done = 0;
+  while(done < sizeof(unsigned int)) {
+    ssize_t ret = read(fd, i + done, sizeof(unsigned int) - done);
+    if(ret == -1) {
+      return 1;
+    }
+    if(ret == 0) {
+      break;
+    }
+
+    done += (size_t)ret;
+  }
+  return 0;
+}
+
+int read_sizet(int fd, size_t *i) {
+  size_t done = 0;
+  while(done < sizeof(size_t)) {
+    ssize_t ret = read(fd, i + done, sizeof(size_t) - done);
+    if(ret == -1) {
+      return 1;
+    }
+    if(ret == 0) {
+      break;
+    }
+    done += (size_t)ret;
+  }
+  return 0;
+}
