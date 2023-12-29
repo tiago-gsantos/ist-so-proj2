@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <stdio.h>
 
 int parse_uint(int fd, unsigned int *value, char *next) {
   char buf[16];
@@ -125,6 +126,7 @@ int write_sizet(int fd, size_t *i) {
 
   while(done < sizeof(size_t)) {
     ssize_t ret = write(fd, i + done, sizeof(size_t) - done);
+    
     if(ret == -1) {
       return 1;
     }
@@ -186,6 +188,7 @@ int read_sizet(int fd, size_t *i) {
   size_t done = 0;
   while(done < sizeof(size_t)) {
     ssize_t ret = read(fd, i + done, sizeof(size_t) - done);
+
     if(ret == -1) {
       return 1;
     }

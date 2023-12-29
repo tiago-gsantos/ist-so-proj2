@@ -84,10 +84,12 @@ int ems_quit(void) {
     fprintf(stderr, "Failed to write to pipe\n");
     return 1;
   }
+  /*
   if(write_int(req_pipe_fd, &session_id) != 0){
     fprintf(stderr, "Failed to write to pipe\n");
     return 1;
   }
+  */
 
   // Close pipes
   if(close(req_pipe_fd) != 0){
@@ -188,12 +190,13 @@ int ems_show(int out_fd, unsigned int event_id) {
   }
   
   size_t num_rows, num_cols;
-  if(read_sizet(req_pipe_fd, &num_rows) != 0){
-    fprintf(stderr, "Failed to read from pipe\n");
+  
+  if(read_sizet(resp_pipe_fd, &num_rows) != 0){
+    fprintf(stderr, "1 Failed to read from pipe\n");
     return 1;
   }
-  if(read_sizet(req_pipe_fd, &num_cols) != 0){
-    fprintf(stderr, "Failed to read from pipe\n");
+  if(read_sizet(resp_pipe_fd, &num_cols) != 0){
+    fprintf(stderr, "2 Failed to read from pipe\n");
     return 1;
   }
 
@@ -201,7 +204,7 @@ int ems_show(int out_fd, unsigned int event_id) {
     for(size_t j = 1; j <= num_cols; j++){
       unsigned int seat;
       if(read_uint(resp_pipe_fd, &seat) != 0){
-        fprintf(stderr, "Failed to read from pipe\n");
+        fprintf(stderr, "3 Failed to read from pipe\n");
         return 1;
       }
       if(print_uint(out_fd, seat) != 0){
