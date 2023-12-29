@@ -90,9 +90,18 @@ int ems_quit(void) {
   }
 
   // Close pipes
-  close(req_pipe_fd);
-  close(resp_pipe_fd);
-  close(server_pipe_fd);
+  if(close(req_pipe_fd) != 0){
+    fprintf(stderr, "Failed to close pipe\n");
+    return 1;
+  }
+  if(close(resp_pipe_fd) != 0){
+    fprintf(stderr, "Failed to close pipe\n");
+    return 1;
+  }
+  if(close(server_pipe_fd) != 0){
+    fprintf(stderr, "Failed to close pipe\n");
+    return 1;
+  }
   
   return 0;
 }
