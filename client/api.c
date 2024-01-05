@@ -28,11 +28,11 @@ int ems_setup(char const* req_pipe_path, char const* resp_pipe_path, char const*
   }
 
   // Create pipes
-  if (mkfifo(req_pipe_path, 0777) != 0) {
+  if (mkfifo(req_pipe_path, 0664) != 0) {
     fprintf(stderr, "Failed to create pipe\n");
     return 1;
   }
-  if (mkfifo(resp_pipe_path, 0777) != 0) {
+  if (mkfifo(resp_pipe_path, 0664) != 0) {
     fprintf(stderr, "Failed to create pipe\n");
     return 1;
   }

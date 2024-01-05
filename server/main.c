@@ -6,6 +6,7 @@
 #include <unistd.h>
 #include <sys/stat.h>
 #include <pthread.h>
+#include <signal.h>
 
 #include "common/constants.h"
 #include "common/io.h"
@@ -25,7 +26,23 @@ pthread_mutex_t buffer_lock = PTHREAD_MUTEX_INITIALIZER;
 pthread_cond_t buffer_full = PTHREAD_COND_INITIALIZER;
 pthread_cond_t buffer_empty = PTHREAD_COND_INITIALIZER; 
 
+int sig_occured = 0;
+
+static void handle_sigusr(int sig){
+  if(sig == SIGUSR1){
+    sig_occured = 1;
+  }
+}
+
 void *execute_session(void *arg){
+  sigset_t mask;
+  sigemptyset(&mask);
+  sigaddset(&mask, SIGUSR1);
+  if (pthread_sigmask(SIG_BLOCK, &mask, NULL) != 0) {
+    fprintf(stderr, "Error masking the working thread\n");
+    exit(EXIT_FAILURE);
+  }
+
   int session_id = *(int *)arg;
   while(1){
     // Read from Producer-Consumer buffer
@@ -194,7 +211,7 @@ int main(int argc, char* argv[]) {
   }
   
   // criar server pipe
-  if (mkfifo(argv[1], 0777) != 0) {
+  if (mkfifo(argv[1], 0664) != 0) {
     fprintf(stderr, "Failed to create pipe\n");
     return 1;
   }
@@ -203,6 +220,14 @@ int main(int argc, char* argv[]) {
   int reg_pipe_fd = open(argv[1], O_RDONLY);
   if (reg_pipe_fd == -1) {
     fprintf(stderr, "Failed to open pipe\n");
+    return 1;
+  }
+
+  struct sigaction sa;
+  sa.sa_handler = &handle_sigusr;
+  sa.sa_flags = SA_RESTART;
+  if(sigaction(SIGUSR1, &sa, NULL) != 0) {
+    fprintf(stderr, "Error changing signal action\n");
     return 1;
   }
   
@@ -216,6 +241,23 @@ int main(int argc, char* argv[]) {
   }
 
   while(1){
+    //verificar se houve signal
+    while(sig_occured == 1){
+      sigset_t mask;
+      sigemptyset(&mask);
+      sigaddset(&mask, SIGUSR1);
+      if (pthread_sigmask(SIG_BLOCK, &mask, NULL) != 0) {
+        fprintf(stderr, "Error blocking signal\n");
+        return 1;
+      }
+      sig_occured = 0;
+      if (pthread_sigmask(SIG_UNBLOCK, &mask, NULL) != 0) {
+        fprintf(stderr, "Error unblocking signal\n");
+        return 1;
+      }
+      ems_print_all_events();
+    }
+    
     // ler do server pipe
     char setup_code = EOF;
     if(read_str(reg_pipe_fd, &setup_code, sizeof(char)) != 0){

@@ -308,3 +308,54 @@ int ems_list_events(int out_fd) {
   pthread_rwlock_unlock(&event_list->rwl);
   return 0;
 }
+
+int ems_print_all_events(){
+  if (event_list == NULL) {
+    fprintf(stderr, "EMS state must be initialized\n");
+    return 1;
+  }
+
+  if (pthread_rwlock_rdlock(&event_list->rwl) != 0) {
+    fprintf(stderr, "Error locking list rwl\n");
+    return 1;
+  }
+
+  struct ListNode* to = event_list->tail;
+  struct ListNode* current = event_list->head;
+
+  if(current == NULL) {
+    return 0;
+  }
+
+  while(current != NULL){
+    fprintf(stdout, "Event: %d\n", (current->event)->id);
+    
+    // Show event
+    if (pthread_mutex_lock(&current->event->mutex) != 0) {
+      fprintf(stderr, "Error locking mutex\n");
+      return 1;
+    }
+
+    for (size_t i = 1; i <= current->event->rows; i++) {
+      for (size_t j = 1; j <= current->event->cols; j++) {
+        if(j < current->event->cols) {
+          fprintf(stdout, "%d ", current->event->data[seat_index(current->event, i, j)]);
+        }
+        else {
+          fprintf(stdout, "%d\n", current->event->data[seat_index(current->event, i, j)]);
+        }
+      }
+    }
+
+    pthread_mutex_unlock(&current->event->mutex);
+
+    if (current == to) {
+      break;
+    }
+
+    current = current->next;
+  }
+
+  pthread_rwlock_unlock(&event_list->rwl);
+  return 0;
+}
