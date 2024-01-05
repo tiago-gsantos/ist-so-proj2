@@ -217,7 +217,7 @@ int main(int argc, char* argv[]) {
   }
   
   // abrir server pipe para ler
-  int reg_pipe_fd = open(argv[1], O_RDONLY);
+  int reg_pipe_fd = open(argv[1], O_RDWR);
   if (reg_pipe_fd == -1) {
     fprintf(stderr, "Failed to open pipe\n");
     return 1;
@@ -259,14 +259,15 @@ int main(int argc, char* argv[]) {
     }
     
     // ler do server pipe
-    char setup_code = EOF;
-    if(read_str(reg_pipe_fd, &setup_code, sizeof(char)) != 0){
+    char setup_code;
+    ssize_t ret = read(reg_pipe_fd, &setup_code, sizeof(char));
+    fprintf(stderr, "skdfskufns\n");
+    if(errno == EINTR) {
+      continue;
+    }
+    else if(ret == -1) {
       fprintf(stderr, "Failed to read from pipe\n");
       return 1;
-    }
-
-    if(setup_code == EOF){
-      continue;
     }
 
     client_pipes client;
