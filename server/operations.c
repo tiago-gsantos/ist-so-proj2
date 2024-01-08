@@ -56,6 +56,7 @@ int ems_terminate() {
 
   free_list(event_list);
   pthread_rwlock_unlock(&event_list->rwl);
+
   return 0;
 }
 
@@ -218,15 +219,18 @@ int ems_show(int out_fd, unsigned int event_id) {
   ret = 0;
   if(write_int(out_fd, &ret) != 0){
     fprintf(stderr, "Failed to write to pipe\n");
+    pthread_mutex_unlock(&event->mutex);
     return 1;
   }
 
   if(write_sizet(out_fd, &(event->rows)) != 0){
     fprintf(stderr, "Failed to write to pipe\n");
+    pthread_mutex_unlock(&event->mutex);
     return 1;
   }
   if(write_sizet(out_fd, &(event->cols)) != 0){
     fprintf(stderr, "Failed to write to pipe\n");
+    pthread_mutex_unlock(&event->mutex);
     return 1;
   }
 
@@ -234,6 +238,7 @@ int ems_show(int out_fd, unsigned int event_id) {
     for (size_t j = 1; j <= event->cols; j++) {
       if(write_uint(out_fd, &(event->data[seat_index(event, i, j)])) != 0){
         fprintf(stderr, "Failed to write to pipe\n");
+        pthread_mutex_unlock(&event->mutex);
         return 1;
       }
     }
@@ -266,6 +271,7 @@ int ems_list_events(int out_fd) {
   ret = 0;
   if(write_int(out_fd, &ret) != 0){
     fprintf(stderr, "Failed to write to pipe\n");
+    pthread_rwlock_unlock(&event_list->rwl);
     return 1;
   }
 
@@ -324,6 +330,10 @@ int ems_print_all_events(){
   struct ListNode* current = event_list->head;
 
   if(current == NULL) {
+    if(pthread_rwlock_unlock(&event_list->rwl) != 0){
+      fprintf(stderr, "Error unlocking list rwl\n");
+      return 1;
+    }
     return 0;
   }
 
@@ -333,6 +343,7 @@ int ems_print_all_events(){
     // Show event
     if (pthread_mutex_lock(&current->event->mutex) != 0) {
       fprintf(stderr, "Error locking mutex\n");
+      pthread_rwlock_unlock(&event_list->rwl);
       return 1;
     }
 
@@ -347,7 +358,10 @@ int ems_print_all_events(){
       }
     }
 
-    pthread_mutex_unlock(&current->event->mutex);
+    if(pthread_mutex_unlock(&current->event->mutex) != 0){
+      fprintf(stderr, "Error unlocking mutex\n");
+      return 1;
+    }
 
     if (current == to) {
       break;
@@ -356,6 +370,9 @@ int ems_print_all_events(){
     current = current->next;
   }
 
-  pthread_rwlock_unlock(&event_list->rwl);
+  if(pthread_rwlock_unlock(&event_list->rwl) != 0){
+    fprintf(stderr, "Error unlocking list rwl\n");
+    return 1;
+  }
   return 0;
 }

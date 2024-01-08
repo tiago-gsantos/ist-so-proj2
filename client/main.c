@@ -9,8 +9,7 @@
 
 int main(int argc, char* argv[]) {
   if (argc < 5) {
-    fprintf(stderr, "Usage: %s <request pipe path> <response pipe path> <server pipe path> <.jobs file path>\n",
-            argv[0]);
+    fprintf(stderr, "Usage: %s <request pipe path> <response pipe path> <server pipe path> <.jobs file path>\n", argv[0]);
     return 1;
   }
 
@@ -36,9 +35,10 @@ int main(int argc, char* argv[]) {
     return 1;
   }
 
-  int out_fd = open(out_path, O_WRONLY | O_CREAT | O_TRUNC, 0666);
+  int out_fd = open(out_path, O_WRONLY | O_CREAT | O_TRUNC, 0664);
   if (out_fd == -1) {
     fprintf(stderr, "Failed to open output file. Path: %s\n", out_path);
+    close(in_fd);
     return 1;
   }
 
@@ -116,6 +116,7 @@ int main(int argc, char* argv[]) {
       case EOC:
         close(in_fd);
         close(out_fd);
+        
         ems_quit();
         return 0;
     }
